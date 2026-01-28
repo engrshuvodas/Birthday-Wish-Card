@@ -1,32 +1,157 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style2.css">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap">
-  <title>Happy Birthday </title>
-</head>
-<body>
-  <a href="index.html"><h2>Click for home page</h2></a>
-  <div class="card">
-    <img src="./img/girl2.jpeg" alt="birthday" class="birthday" width="800" height="600"RIGHT>
-    <div class="text">
-      <h1>Happy Birthday MyLove </h1>
-      <p> <h2>Having you in my life makes me feel like the luckiest person alive.
-Your smile, your love, your presence — they complete my world.
-On your special day, I wish all your dreams come true. 💖</h2></p>
-         <div class="credit">Made with <span style="color:tomato">❤</span> by <a  href="">Engr Shuvo Das</a></div>
-    </div>
+  <title>A Special Surprise | Happy Birthday</title>
 
-    <div class="space"></div>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Great+Vibes&display=swap"
+    rel="stylesheet">
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <link rel="stylesheet" href="style2.css">
+</head>
+
+<body>
+  <div class="celebration-container">
+    <!-- Floating Balloons Background -->
+    <div class="balloons-bg" id="balloons-container"></div>
+
+    <main class="content-wrapper">
+      <div class="glass-card">
+        <div class="photo-section">
+          <div class="image-reveal">
+            <img src="./img/girl2.jpeg" alt="Birthday Celebration" class="main-image">
+            <div class="image-shimmer"></div>
+          </div>
+        </div>
+
+        <div class="message-section">
+          <h1 class="celebrate-title">Happy Birthday, <br><span>My Love</span></h1>
+          <div class="message-content">
+            <p class="reveal-p">Having you in my life makes me feel like the luckiest person alive.</p>
+            <p class="reveal-p">Your smile, your love, your presence — they complete my world.</p>
+            <p class="reveal-p">On your special day, I wish all your dreams come true. 💖</p>
+          </div>
+
+          <div class="footer-info">
+            <div class="credit">Made with <span class="heart-pulse">❤</span> by <span class="author">Engr Shuvo
+                Das</span></div>
+            <a href="index.html" class="back-home">Back to start</a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="music-controls">
+      <audio id="celebration-music" loop>
+        <source src="./bsong.mpeg" type="audio/mpeg">
+      </audio>
+      <button id="music-toggle" class="fab-music">
+        <span class="icon">🎵</span>
+      </button>
+    </div>
   </div>
-  <div class="text">
-    
-	<Audio controls>
-		<source src="./bsong.mpeg">
-	</Audio>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Entrance Animations
+      const tl = gsap.timeline();
+
+      tl.from('.glass-card', {
+        y: 100,
+        opacity: 0,
+        duration: 1.2,
+        ease: 'power4.out'
+      })
+        .from('.main-image', {
+          scale: 1.2,
+          opacity: 0,
+          duration: 1,
+          ease: 'power2.out'
+        }, "-=0.5")
+        .from('.celebrate-title', {
+          x: 50,
+          opacity: 0,
+          duration: 0.8
+        }, "-=0.3")
+        .from('.reveal-p', {
+          y: 20,
+          opacity: 0,
+          stagger: 0.3,
+          duration: 0.8
+        }, "-=0.2");
+
+      // Continuous Confetti
+      const duration = 15 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+      function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      const interval = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+        confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+      }, 250);
+
+      // Balloon Generation
+      const balloonContainer = document.getElementById('balloons-container');
+      const colors = ['#ff4d6d', '#ff758f', '#ffb3c1', '#ff85a1', '#fbc4ab'];
+
+      for (let i = 0; i < 15; i++) {
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon';
+        balloon.style.left = `${Math.random() * 100}%`;
+        balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        balloon.style.width = `${Math.random() * 30 + 30}px`;
+        balloon.style.height = `${balloon.offsetWidth * 1.2}px`;
+        balloonContainer.appendChild(balloon);
+
+        gsap.to(balloon, {
+          y: -window.innerHeight - 200,
+          x: `+=${Math.random() * 100 - 50}`,
+          rotation: Math.random() * 45,
+          duration: Math.random() * 10 + 10,
+          delay: Math.random() * 10,
+          repeat: -1,
+          ease: 'none'
+        });
+      }
+
+      // Music Toggle
+      const musicBtn = document.getElementById('music-toggle');
+      const audio = document.getElementById('celebration-music');
+      let isPlaying = false;
+
+      musicBtn.addEventListener('click', () => {
+        if (!isPlaying) {
+          audio.play();
+          musicBtn.classList.add('playing');
+        } else {
+          audio.pause();
+          musicBtn.classList.remove('playing');
+        }
+        isPlaying = !isPlaying;
+      });
+    });
+  </script>
 </body>
+
 </html>
