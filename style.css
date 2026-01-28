@@ -100,6 +100,40 @@ body {
   }
 }
 
+.typing-line {
+  margin: 0;
+  padding: 8px 0;
+  line-height: 1.6;
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  color: var(--text-light);
+  font-weight: 400;
+  min-height: 1.6em;
+  position: relative;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* Typing cursor effect */
+.typing-active::after {
+  content: '|';
+  position: absolute;
+  margin-left: 2px;
+  color: var(--primary);
+  animation: blink 0.7s infinite;
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
 /* Loader */
 #loader {
   position: fixed;
@@ -170,8 +204,7 @@ body {
   height: 550px;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.1s ease-out;
-  /* Reduced transition for mouse move responsiveness */
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* 3D Depth Enhancements */
@@ -210,7 +243,7 @@ body {
 #card-front {
   z-index: 2;
   transform-origin: left;
-  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   border-radius: 0 15px 15px 0;
   position: relative;
@@ -310,8 +343,10 @@ body {
 
 .signed .name {
   font-family: var(--font-script);
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   color: var(--primary);
+  display: inline-block;
+  margin-top: 5px;
 }
 
 .heart-icon {
@@ -390,12 +425,12 @@ body {
 }
 
 /* Interaction States */
-#card.is-open #card-front {
-  transform: rotateY(-180deg);
+#card.is-open {
+  transform: translateX(10%) rotateX(5deg);
 }
 
-#card.is-open {
-  transform: translateX(15%);
+#card.is-open #card-front {
+  transform: rotateY(-180deg);
 }
 
 /* Buttons */
@@ -438,27 +473,55 @@ body {
   display: block;
 }
 
-/* Navigation Hint */
-.navigation-hint {
-  margin-top: 40px;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.5s ease;
+.mini-surprise-btn {
+  margin-top: 25px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 25px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  width: fit-content;
 }
 
-#card.is-open~.navigation-hint {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+.mini-surprise-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(255, 77, 109, 0.4);
+  background: var(--primary-dark);
 }
 
+.mini-surprise-btn .icon {
+  font-size: 1.1rem;
+}
+
+/* Navigation Hint (Unlock Button) */
 .navigation-hint {
   margin-top: 50px;
   opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(30px);
+  transition: all 1s cubic-bezier(0.23, 1, 0.32, 1);
   text-align: center;
   pointer-events: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-is-open .navigation-hint {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition-delay: 0.8s;
+  /* Appears shortly after card starts opening */
 }
 
 .divider {
@@ -598,7 +661,8 @@ body {
   }
 
   #card.is-open #card-front {
-    transform: rotateY(-180deg);
+    transform: rotateY(-160deg);
+    /* Slightly less to keep it visible on mobile sides if needed */
   }
 
   .main-title {

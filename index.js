@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const replayBtn = document.getElementById('replay-btn');
   const heartTrigger = document.getElementById('heart-trigger');
   const signature = document.getElementById('signature');
+  const revealSurpriseBtn = document.getElementById('reveal-surprise-btn');
 
   const cardFront = document.getElementById('card-front');
 
@@ -47,25 +48,34 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. 3D INTERACTION
   const handleMove = (x, y) => {
     if (window.innerWidth < 1024) return; // Only for desktop
-
-    // Calculate rotation - less intense when card is open for better reading
-    const factor = isCardOpen ? 60 : 40;
-    const rx = (window.innerHeight / 2 - y) / factor;
-    const ry = (x - window.innerWidth / 2) / factor;
-
-    gsap.to(card, {
-      rotationX: rx,
-      rotationY: ry,
-      duration: 0.7,
-      ease: 'power2.out'
-    });
+    if (!isCardOpen) {
+      // Very subtle hover effect when closed
+      const rx = (window.innerHeight / 2 - y) / 50;
+      const ry = (x - window.innerWidth / 2) / 50;
+      gsap.to(card, {
+        rotationX: rx,
+        rotationY: ry,
+        duration: 0.7,
+        ease: 'power2.out'
+      });
+    } else {
+      // Even subtler when open to keep text readable
+      const rx = (window.innerHeight / 2 - y) / 100;
+      const ry = (x - window.innerWidth / 2) / 100;
+      gsap.to(card, {
+        rotationX: rx + 5, // 5deg base tilt
+        rotationY: ry,
+        duration: 0.7,
+        ease: 'power2.out'
+      });
+    }
 
     // Move light source
     gsap.to(cursorLight, { left: x, top: y, duration: 0.3 });
 
     // Subtle orb reaction
-    gsap.to('.orb-1', { x: ry * 1.5, y: rx * 1.5, duration: 2 });
-    gsap.to('.orb-2', { x: -ry * 1.5, y: -rx * 1.5, duration: 2 });
+    gsap.to('.orb-1', { x: (x - window.innerWidth / 2) * 0.05, y: (y - window.innerHeight / 2) * 0.05, duration: 2 });
+    gsap.to('.orb-2', { x: (window.innerWidth / 2 - x) * 0.05, y: (window.innerHeight / 2 - y) * 0.05, duration: 2 });
   };
 
   document.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
@@ -82,16 +92,62 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 3. CARD OPEN/CLOSE (Human Flow)
+  // Typing Animation Configuration
+  const typingConfig = {
+    lines: [
+      "You've been with me through my best days and my hardest ones — and I can't imagine life without you.",
+      "On your special day, I just want you to feel how deeply loved and appreciated you truly are.",
+      "You deserve all the joy in the world, today and always."
+    ],
+    duration: 1.5, // Faster typing for better UX
+    pauseBetweenLines: 0.4
+  };
+
+  function startTypingAnimation() {
+    const tl = gsap.timeline({
+      onComplete: () => {
+        // Show the manual surprise button after typing is done
+        gsap.to(revealSurpriseBtn, {
+          display: 'flex',
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'back.out(1.7)'
+        });
+      }
+    });
+
+    typingConfig.lines.forEach((line, index) => {
+      const elementId = `line-${index + 1}`;
+      const el = document.getElementById(elementId);
+
+      tl.to(el, {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        ease: 'power2.out'
+      })
+        .add(() => el.classList.add('typing-active'))
+        .to(el, {
+          duration: line.length * 0.04, // Dynamic duration based on length
+          text: line,
+          ease: 'none'
+        })
+        .add(() => el.classList.remove('typing-active'), `+=${typingConfig.pauseBetweenLines}`);
+    });
+
+    return tl;
+  }
+
   const openCard = () => {
     isCardOpen = true;
     card.classList.add('is-open');
+    document.body.classList.add('card-is-open');
 
-    const tl = gsap.timeline();
+    const tl = gsap.timeline(); // Remove delay for instant response
 
-    // SCALE UP: Make it "the whole page front of me"
-    tl.to(card, { scale: 1.1, duration: 1.2, ease: 'power3.inOut' }, 0);
-
-    // Animate the front cover specifically to reveal the inside
+    // SCALE UP & OPEN: Smooth 1.4 second duration for a premium feel
+    tl.to(card, { scale: 1.1, duration: 1.4, ease: 'power3.inOut' }, 0);
     tl.to(cardFront, { rotationY: -180, duration: 1.4, ease: 'power4.inOut' }, 0);
 
     // Reveal title
@@ -101,30 +157,28 @@ document.addEventListener('DOMContentLoaded', () => {
       "-=0.4"
     );
 
-    // Staggered reveal of paragraphs
-    tl.fromTo('.wish-text p',
-      { opacity: 0, y: 10 },
-      { opacity: 1, y: 0, duration: 0.8, stagger: 0.3, ease: 'power2.out' },
-      "-=0.4"
-    );
+    // Start typing animation
+    tl.add(() => {
+      startTypingAnimation();
+    }, "-=0.2");
 
-    // Signature
-    tl.fromTo('#signature',
-      { opacity: 0, scale: 0.9, filter: 'blur(5px)' },
-      { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1, ease: 'back.out(2)' },
+    // Signature (reveals after title, but before typing finishes)
+    tl.fromTo('.signed',
+      { opacity: 0, y: 10, filter: 'blur(5px)' },
+      { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1, ease: 'power2.out' },
       "-=0.2"
     ).add(() => {
       heartTrigger.classList.add('heart-pulse');
-      setTimeout(showFinalEnding, 3000);
     });
   };
 
   const closeCard = () => {
     isCardOpen = false;
     card.classList.remove('is-open');
-    // Scale back down
-    gsap.to(card, { scale: 1, duration: 1.2, ease: 'power3.inOut' });
-    gsap.to(cardFront, { rotationY: 0, duration: 1.2, ease: 'power3.inOut' });
+    document.body.classList.remove('card-is-open');
+    // Scale back down instantly but smoothly (1.4s)
+    gsap.to(card, { scale: 1, duration: 1.4, ease: 'power3.inOut' });
+    gsap.to(cardFront, { rotationY: 0, duration: 1.4, ease: 'power3.inOut' });
   };
 
   openBtn.addEventListener('click', openCard);
@@ -195,6 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
       ease: 'power3.out'
     });
   }
+
+  revealSurpriseBtn.addEventListener('click', () => {
+    window.location.href = 'bbd.html';
+  });
 
   replayBtn.addEventListener('click', () => {
     endingScene.classList.remove('active');
