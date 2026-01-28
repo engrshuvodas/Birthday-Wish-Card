@@ -48,8 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const handleMove = (x, y) => {
     if (window.innerWidth < 1024) return; // Only for desktop
 
-    const rx = (window.innerHeight / 2 - y) / 40;
-    const ry = (x - window.innerWidth / 2) / 40;
+    // Calculate rotation - less intense when card is open for better reading
+    const factor = isCardOpen ? 60 : 40;
+    const rx = (window.innerHeight / 2 - y) / factor;
+    const ry = (x - window.innerWidth / 2) / factor;
 
     gsap.to(card, {
       rotationX: rx,
@@ -86,8 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tl = gsap.timeline();
 
+    // SCALE UP: Make it "the whole page front of me"
+    tl.to(card, { scale: 1.1, duration: 1.2, ease: 'power3.inOut' }, 0);
+
     // Animate the front cover specifically to reveal the inside
-    tl.to(cardFront, { rotationY: -180, duration: 1.4, ease: 'power4.inOut' });
+    tl.to(cardFront, { rotationY: -180, duration: 1.4, ease: 'power4.inOut' }, 0);
 
     // Reveal title
     tl.fromTo('.wish-title',
@@ -96,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "-=0.4"
     );
 
-    // Staggered reveal of paragraphs (more 'human', less waiting)
+    // Staggered reveal of paragraphs
     tl.fromTo('.wish-text p',
       { opacity: 0, y: 10 },
       { opacity: 1, y: 0, duration: 0.8, stagger: 0.3, ease: 'power2.out' },
@@ -110,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
       "-=0.2"
     ).add(() => {
       heartTrigger.classList.add('heart-pulse');
-      // Show the final ending button after the user has had some time to read
       setTimeout(showFinalEnding, 3000);
     });
   };
@@ -118,6 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeCard = () => {
     isCardOpen = false;
     card.classList.remove('is-open');
+    // Scale back down
+    gsap.to(card, { scale: 1, duration: 1.2, ease: 'power3.inOut' });
     gsap.to(cardFront, { rotationY: 0, duration: 1.2, ease: 'power3.inOut' });
   };
 
