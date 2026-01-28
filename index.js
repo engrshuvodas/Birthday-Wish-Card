@@ -124,7 +124,39 @@ document.addEventListener('DOMContentLoaded', () => {
   openBtn.addEventListener('click', openCard);
   closeBtn.addEventListener('click', closeCard);
 
-  // 4. MICRO-INTERACTIONS
+  // 4. MODAL INTERACTIONS (LoveFunCode)
+  const funModal = document.getElementById('fun-modal');
+  const launchBtn = document.getElementById('launch-fun');
+  const closeModalBtn = document.getElementById('close-modal');
+
+  launchBtn.addEventListener('click', () => {
+    funModal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Disable scroll
+  });
+
+  closeModalBtn.addEventListener('click', () => {
+    funModal.classList.remove('active');
+    document.body.style.overflow = ''; // Enable scroll
+    // Force reset iframe to stop music if any
+    const iframe = document.getElementById('fun-iframe');
+    const src = iframe.src;
+    iframe.src = '';
+    iframe.src = src;
+  });
+
+  // 5. SCROLL REVEAL FOR SURPRISE SECTION
+  const surpriseSection = document.getElementById('fun-surprise');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        surpriseSection.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.2 });
+
+  observer.observe(surpriseSection);
+
+  // 6. MICRO-INTERACTIONS
   heartTrigger.addEventListener('click', () => {
     gsap.to(heartTrigger, {
       scale: 1.8,
