@@ -9,14 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const loader = document.getElementById('loader');
   const musicBtn = document.getElementById('music-toggle');
   const audio = document.getElementById('bg-music');
-  const cardWrapper = document.getElementById('card-wrapper');
   const cursorLight = document.querySelector('.cursor-light');
-  const sfxPaper = document.getElementById('sfx-paper');
-  const sfxCandle = document.getElementById('sfx-candle');
   const endingScene = document.getElementById('ending-scene');
   const replayBtn = document.getElementById('replay-btn');
   const heartTrigger = document.getElementById('heart-trigger');
   const signature = document.getElementById('signature');
+
+  const cardFront = document.getElementById('card-front');
 
   let isMusicPlaying = false;
   let isCardOpen = false;
@@ -45,28 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
       .from('.audio-player', { x: -20, opacity: 0, duration: 0.8 }, "-=0.8");
   }
 
-  // 2. 3D INTERACTION (Desktop & Mobile)
+  // 2. 3D INTERACTION
   const handleMove = (x, y) => {
-    const rx = (window.innerHeight / 2 - y) / 30;
-    const ry = (x - window.innerWidth / 2) / 30;
+    if (window.innerWidth < 1024) return; // Only for desktop
+
+    const rx = (window.innerHeight / 2 - y) / 40;
+    const ry = (x - window.innerWidth / 2) / 40;
 
     gsap.to(card, {
-      rotationX: isCardOpen ? rx / 2 : rx,
-      rotationY: isCardOpen ? (ry / 2) + 15 : ry, // Slight offset when open
-      duration: 0.5,
+      rotationX: rx,
+      rotationY: ry,
+      duration: 0.7,
       ease: 'power2.out'
     });
 
     // Move light source
-    gsap.to(cursorLight, {
-      left: x,
-      top: y,
-      duration: 0.2
-    });
+    gsap.to(cursorLight, { left: x, top: y, duration: 0.3 });
 
-    // Suble orb reaction
-    gsap.to('.orb-1', { x: ry * 2, y: rx * 2, duration: 2 });
-    gsap.to('.orb-2', { x: -ry * 2, y: -rx * 2, duration: 2 });
+    // Subtle orb reaction
+    gsap.to('.orb-1', { x: ry * 1.5, y: rx * 1.5, duration: 2 });
+    gsap.to('.orb-2', { x: -ry * 1.5, y: -rx * 1.5, duration: 2 });
   };
 
   document.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
@@ -82,55 +79,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 3. CARD OPEN/CLOSE WITH STORY FLOW
+  // 3. CARD OPEN/CLOSE (Human Flow)
   const openCard = () => {
     isCardOpen = true;
     card.classList.add('is-open');
-    sfxPaper.currentTime = 0;
-    sfxPaper.play().catch(() => { });
-    sfxCandle.play().catch(() => { });
 
-    // Cinematic Story Timeline
-    const storyTl = gsap.timeline();
+    const tl = gsap.timeline();
 
-    storyTl.to(card, { rotationY: -180, duration: 1.5, ease: 'power4.inOut' })
-      .fromTo('.wish-title',
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 1, ease: 'power3.out' },
-        "-=0.5"
-      );
+    // Animate the front cover specifically to reveal the inside
+    tl.to(cardFront, { rotationY: -180, duration: 1.4, ease: 'power4.inOut' });
 
-    // Typing effect for paragraphs
-    const paragraphs = document.querySelectorAll('.wish-text p');
-    paragraphs.forEach((p, i) => {
-      const text = p.innerText;
-      p.innerText = '';
-      storyTl.to(p, {
-        text: text,
-        duration: text.length * 0.03,
-        ease: 'none'
-      }, i === 0 ? "-=0.2" : "+=0.1");
-    });
+    // Reveal title
+    tl.fromTo('.wish-title',
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' },
+      "-=0.4"
+    );
 
-    // Signature Animation
-    storyTl.fromTo('#signature',
-      { opacity: 0, scale: 0.8, filter: 'blur(10px)' },
-      { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1.2, ease: 'back.out(2)' },
-      "+=0.5"
+    // Staggered reveal of paragraphs (more 'human', less waiting)
+    tl.fromTo('.wish-text p',
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.8, stagger: 0.3, ease: 'power2.out' },
+      "-=0.4"
+    );
+
+    // Signature
+    tl.fromTo('#signature',
+      { opacity: 0, scale: 0.9, filter: 'blur(5px)' },
+      { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1, ease: 'back.out(2)' },
+      "-=0.2"
     ).add(() => {
       heartTrigger.classList.add('heart-pulse');
-      // Trigger ending after some time
-      setTimeout(showFinalEnding, 10000);
+      // Show the final ending button after the user has had some time to read
+      setTimeout(showFinalEnding, 3000);
     });
   };
 
   const closeCard = () => {
     isCardOpen = false;
     card.classList.remove('is-open');
-    sfxPaper.currentTime = 0;
-    sfxPaper.play().catch(() => { });
-    sfxCandle.pause();
-    gsap.to(card, { rotationY: 0, duration: 1.2, ease: 'power3.inOut' });
+    gsap.to(cardFront, { rotationY: 0, duration: 1.2, ease: 'power3.inOut' });
   };
 
   openBtn.addEventListener('click', openCard);
@@ -139,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. MICRO-INTERACTIONS
   heartTrigger.addEventListener('click', () => {
     gsap.to(heartTrigger, {
-      scale: 2,
+      scale: 1.8,
       color: '#ff0000',
       duration: 0.3,
       yoyo: true,
@@ -147,35 +135,26 @@ document.addEventListener('DOMContentLoaded', () => {
       onComplete: () => {
         const msg = document.createElement('div');
         msg.innerText = "You are my everything! ✨";
-        msg.style.cssText = `
-          position: fixed; top: 50%; left: 50%; 
-          transform: translate(-50%, -50%); 
-          color: white; background: var(--primary); 
-          padding: 15px 30px; border-radius: 50px; 
-          z-index: 3000; font-weight: 600;
-        `;
+        msg.style.cssText = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background: #ff4d6d; padding: 15px 30px; border-radius: 50px; z-index: 3000; font-weight: 600; box-shadow: 0 10px 25px rgba(255, 77, 109, 0.4);`;
         document.body.appendChild(msg);
-        gsap.from(msg, { scale: 0, opacity: 0, duration: 0.5 });
-        gsap.to(msg, { y: -50, opacity: 0, delay: 2, duration: 1, onComplete: () => msg.remove() });
-
-        if (navigator.vibrate) navigator.vibrate(50);
+        gsap.from(msg, { scale: 0, opacity: 0, duration: 0.5, ease: 'back.out(1.7)' });
+        gsap.to(msg, { y: -40, opacity: 0, delay: 1.5, duration: 0.8, onComplete: () => msg.remove() });
       }
     });
 
-    // Extra Sparkles
-    for (let i = 0; i < 15; i++) createSparkle(window.innerWidth / 2, window.innerHeight / 2);
+    for (let i = 0; i < 10; i++) createSparkle(window.innerWidth / 2, window.innerHeight / 2);
   });
 
-  // 5. FINAL SCENE
+  // 5. FINAL SCENE TRIGGER
   function showFinalEnding() {
     if (!isCardOpen) return;
     endingScene.classList.add('active');
     gsap.from('.ending-content > *', {
-      y: 30,
+      y: 20,
       opacity: 0,
-      stagger: 0.3,
-      duration: 1,
-      delay: 0.5
+      stagger: 0.2,
+      duration: 0.8,
+      ease: 'power3.out'
     });
   }
 
@@ -183,13 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
     endingScene.classList.remove('active');
   });
 
-  // 6. UTILITIES (Particles & Sparkles)
+  // 6. DECORATIONS
   function createParticles() {
     const container = document.getElementById('particles-container');
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 25; i++) {
       const p = document.createElement('div');
       p.className = 'particle';
-      p.style.cssText = `position: absolute; width: ${Math.random() * 4 + 2}px; height: ${Math.random() * 4 + 2}px; background: white; opacity: ${Math.random() * 0.4 + 0.1}; border-radius: 50%; top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; pointer-events: none;`;
+      p.style.cssText = `position: absolute; width: ${Math.random() * 3 + 2}px; height: ${Math.random() * 3 + 2}px; background: white; opacity: ${Math.random() * 0.3 + 0.1}; border-radius: 50%; top: ${Math.random() * 100}%; left: ${Math.random() * 100}%; pointer-events: none;`;
       container.appendChild(p);
       animateParticle(p);
     }
@@ -198,14 +177,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function animateParticle(p) {
     gsap.to(p, {
       y: "-=150",
-      x: `+=${Math.random() * 60 - 30}`,
+      x: `+=${Math.random() * 40 - 20}`,
       opacity: 0,
-      duration: Math.random() * 4 + 3,
-      ease: 'none',
+      duration: Math.random() * 5 + 3,
       onComplete: () => {
         p.style.top = '110%';
         p.style.left = `${Math.random() * 100}%`;
-        p.style.opacity = Math.random() * 0.4 + 0.1;
+        p.style.opacity = Math.random() * 0.3 + 0.1;
         animateParticle(p);
       }
     });
@@ -215,24 +193,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const s = document.createElement('div');
     s.className = 'sparkle';
     document.body.appendChild(s);
-    const size = Math.random() * 8 + 4;
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    gsap.set(s, { x, y, width: size, height: size, backgroundColor: color, borderRadius: '50%', position: 'absolute', pointerEvents: 'none', zIndex: 9999 });
-    gsap.to(s, { x: x + (Math.random() * 300 - 150), y: y + (Math.random() * 300 - 150), opacity: 0, scale: 0, duration: Math.random() * 1.5 + 0.5, ease: 'power2.out', onComplete: () => s.remove() });
+    const size = Math.random() * 6 + 4;
+    gsap.set(s, { x, y, width: size, height: size, backgroundColor: colors[Math.floor(Math.random() * colors.length)], borderRadius: '50%', position: 'absolute', pointerEvents: 'none', zIndex: 9999 });
+    gsap.to(s, { x: x + (Math.random() * 200 - 100), y: y + (Math.random() * 200 - 100), opacity: 0, scale: 0, duration: 1.2, ease: 'power2.out', onComplete: () => s.remove() });
   }
 
   createParticles();
   document.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'BUTTON') {
-      for (let i = 0; i < 6; i++) createSparkle(e.pageX, e.pageY);
+    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+      createSparkle(e.pageX, e.pageY);
     }
   });
 
-  // Music Control
+  // Music
   musicBtn.addEventListener('click', () => {
     const text = musicBtn.querySelector('.music-text');
     if (!isMusicPlaying) {
-      audio.play().catch(e => console.log("Audio play blocked", e));
+      audio.play().catch(() => { });
       text.textContent = 'Pause Music';
       musicBtn.classList.add('playing');
       isMusicPlaying = true;

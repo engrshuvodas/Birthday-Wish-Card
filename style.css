@@ -726,3 +726,35 @@ body {
   margin-bottom: 40px;
   opacity: 0.8;
 }
+
+.ending-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.secondary-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+}
+
+.explore-btn {
+  transform: scale(1.1);
+  box-shadow: 0 15px 35px rgba(255, 77, 109, 0.5);
+}
+
+.explore-btn:hover {
+  transform: scale(1.15) translateY(-5px);
+}
